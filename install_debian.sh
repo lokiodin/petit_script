@@ -7,7 +7,7 @@ sudo apt update
 
 # tree
 app=tree
-if [[ ${sudo apt install $app -y} ]]; then
+if [[ ${{sudo apt install $app -y}} ]]; then
 	echo "$app installé"
 fi
 
