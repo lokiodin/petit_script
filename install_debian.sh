@@ -2,6 +2,31 @@
 
 # Installe differentes appli sur debian
 
+
+# Define some colors for quick use...
+COLOR_RED=$(tput setaf 1)
+COLOR_GREEN=$(tput setaf 2)
+COLOR_YELLOW=$(tput setaf 3)
+COLOR_BLUE=$(tput setaf 4)
+COLOR_MAGENTA=$(tput setaf 5)
+COLOR_CYAN=$(tput setaf 6)
+COLOR_WHITE=$(tput setaf 7)
+BOLD=$(tput bold)
+COLOR_RESET=$(tput sgr0)
+
+function echo_red(){
+	echo "${COLOR_RED}${BOLD}$1${COLOR_RESET}"
+}
+
+function echo_green(){
+	echo "${COLOR_GREEN}${BOLD}$1${COLOR_RESET}"
+}
+
+function echo_yellow(){
+	echo "${COLOR_YELLOW}${BOLD}$1${COLOR_RESET}"
+}
+
+
 sudo apt update
 
 
@@ -9,7 +34,7 @@ sudo apt update
 app=tree
 sudo apt install $app -y
 if [[ $? == 0  ]]; then
-	echo "$app installé"
+	echo_green "$app installé"
 fi
 
 # sublime text
@@ -20,50 +45,50 @@ echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sou
 sudo apt-get update
 sudo apt-get install sublime-text
 if [[ $? == 0  ]]; then
-	echo "$app installé"
+	echo_green "$app installé"
 fi
 
 # extractor de differents fichiers (zip, gz, ...)
 app=tar
 sudo apt install $app -y
 if [[ $? == 0  ]]; then
-	echo "$app installé"
+	echo_green "$app installé"
 fi
 app=bunzip2
 sudo apt install $app -y
 if [[ $? == 0  ]]; then
-	echo "$app installé"
+	echo_green "$app installé"
 fi
 app=unrar
 sudo apt install $app -y
 if [[ $? == 0  ]]; then
-	echo "$app installé"
+	echo_green "$app installé"
 fi
 app=unzip
 sudo apt install $app -y
 if [[ $? == 0  ]]; then
-	echo "$app installé"
+	echo_green "$app installé"
 fi
 # app=uncompress
 # if [[ ${sudo apt install $app -y} ]]; then
-# 	echo "$app installé"
+# 	echo_green "$app installé"
 # fi
 app=p7z-full
 sudo apt install $app -y
 if [[ $? == 0  ]]; then
-	echo "$app installé"
+	echo_green "$app installé"
 fi
 app=ar
 sudo apt install $app -y
 if [[ $? == 0  ]]; then
-	echo "$app installé"
+	echo_green "$app installé"
 fi
 app=zstd
 sudo apt install $app -y
 if [[ $? == 0  ]]; then
-	echo "$app installé"
+	echo_green "$app installé"
 fi
-echo "# # ex = EXtractor for all kinds of archives
+echo_green "# # ex = EXtractor for all kinds of archives
 # # usage: ex <file>
 ex ()
 {
@@ -95,7 +120,7 @@ ex ()
 app=chromium
 sudo apt install $app -y
 if [[ $? == 0  ]]; then
-	echo "$app installé"
+	echo_green "$app installé"
 fi
 
 # 
