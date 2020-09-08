@@ -88,7 +88,7 @@ sudo apt install $app -y
 if [[ $? == 0  ]]; then
 	echo_green "$app installé"
 fi
-echo_green "# # ex = EXtractor for all kinds of archives
+echo '# # ex = EXtractor for all kinds of archives
 # # usage: ex <file>
 ex ()
 {
@@ -108,19 +108,25 @@ ex ()
       *.deb)       ar x $1      ;;
       *.tar.xz)    tar xf $1    ;;
       *.tar.zst)   unzstd $1    ;;      
-      *)           echo "'$1' cannot be extracted via ex()" ;;
+      *)           echo "Cannot be extracted via ex()" ;;
     esac
   else
     echo "'$1' is not a valid file"
   fi
-}" >> ~/.bashrc
+}' >> ~/.bashrc
 
 
 # Chromium
 app=chromium
 sudo apt install $app -y
 if [[ $? == 0  ]]; then
-	echo_green "$app installé"
+  echo_green "$app installé"
 fi
 
-# 
+# Tmux
+app=tmux
+sudo apt install $app -y
+if [[ $? == 0  ]]; then
+  echo_green "$app installé"
+fi
+ 
