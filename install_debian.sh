@@ -140,3 +140,7 @@ sudo apt install $app -y
 if [[ $? == 0  ]]; then
   echo_green "$app installé"
 fi
+
+
+
+install_git_repo_opt
