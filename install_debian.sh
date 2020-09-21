@@ -26,7 +26,18 @@ function echo_yellow(){
 	echo "${COLOR_YELLOW}${BOLD}$1${COLOR_RESET}"
 }
 
+function install_git_repo_opt(){
+  cd /opt
+  echo_green "Installation de john dans /opt"
+  git clone https://github.com/openwall/john.git
+  echo_green "Installation des SecLists dans /opt"
+  git clone https://github.com/danielmiessler/SecLists.git
+  echo_green "Installation de Sherlock dans /opt"
+  git clone https://github.com/sherlock-project/sherlock.git
+  
 
+  cd ~
+}
 sudo apt update
 
 
@@ -129,4 +140,3 @@ sudo apt install $app -y
 if [[ $? == 0  ]]; then
   echo_green "$app installé"
 fi
- 
