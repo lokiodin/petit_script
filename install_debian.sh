@@ -38,6 +38,11 @@ function install_git_repo_opt(){
 
   cd ~
 }
+
+function customize_bashrc(){
+  echo "bin2ascii() { { tr -cd 01 | fold -w8; echo; } | sed '1i obase=8; ibase=2' | bc | sed 's/^/\\/' | tr -d '\n' | xargs -0 echo -e; }" >> ~/.bashrc
+}
+
 sudo apt update
 
 
@@ -144,3 +149,4 @@ fi
 
 
 install_git_repo_opt
+customize_bashrc
