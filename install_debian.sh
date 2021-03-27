@@ -64,7 +64,6 @@ elif [ "$(cat /etc/os-release | grep 'debian')" ]; then
 elif [ "$(cat /etc/os-release | grep 'arch')" ]; then
 	distrib="arch"
 fi
-echo $distrib
 
 echo "Here is some question :"
 while [ "$iZSH" != "y" ] && [ "$iZSH" != "yes" ] && [ "$iZSH" != "n" ] && [ "$iZSH" != "no" ]; do
@@ -74,7 +73,7 @@ while [ "$iFONTS" != "y" ] && [ "$iFONTS" != "yes" ] && [ "$iFONTS" != "n" ] && 
 	read -p "Install cool fonts compatible with zsh ? [y/n] " iFONTS
 done
 
-INSTALL_COMMON_TOOLS="tar bunzip2 unrar unzip p7z-full ar zstd"
+INSTALL_COMMON_TOOLS="tar bzip2 unrar-free unzip p7zip-full build-essential zstd wget"
 
 
 INSTALL_KALI_PACKAGES="kali-linux-default kali-tools-top10 sherlock ltrace strace tree"
@@ -96,13 +95,13 @@ if [ $iZSH == "y" ] || [ $iZSH == "yes" ]; then
 
 	## Install antigen-zsh and p10k
 	sudo apt update && sudo apt install -y curl git
-	if [ -d $USER_HOME/.config/antigen ]; then
-		mkdir $USER_HOME/.config/antigen
+	if ! [ -d $USER_HOME/.config/antigen ]; then
+		mkdir -p $USER_HOME/.config/antigen/
 	fi
-	curl -L git.io/antigen > $USER_HOME/.config/antigen.zsh
+	curl -L git.io/antigen > $USER_HOME/.config/antigen/antigen.zsh
 
 	cat << _EOF_ > $USER_HOME/.zshrc
-source /path-to-antigen/antigen.zsh
+source $USER_HOME/.config/antigen/antigen.zsh
 
 # Load the oh-my-zsh's library.
 antigen use oh-my-zsh
@@ -125,7 +124,8 @@ antigen theme romkatv/powerlevel10k
 # Tell Antigen that you're done.
 antigen apply
 _EOF_
-
+	
+	chsh -s $(which zsh)
 	echo_green "Install of zsh and co completed"
 fi
 
@@ -187,7 +187,7 @@ fi
 ##################################
 
 sudo apt update
-sudo apt install $INSTALL_COMMON_TOOLS
+sudo apt install -y $INSTALL_COMMON_TOOLS
 if [ $? -eq 0  ]; then
   echo_green "$INSTALL_COMMON_TOOLS installed"
 fi
@@ -197,7 +197,7 @@ wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add
 sudo apt-get install apt-transport-https
 echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
 sudo apt-get update
-sudo apt-get install sublime-text
+sudo apt-get install -y sublime-text
 if [[ $? == 0  ]]; then
 	echo_green "$app installed"
 fi
@@ -266,7 +266,7 @@ extractor ()
 ##################################
 # Downloading some git repo for kali
 ##################################
-if [ "$distrib" -eq "kali" ]; then
+if [ "$distrib" == "kali" ]; then
 	if [ "$INSTALL_KALI_PACKAGES_REPLY" == "all"]; then
 		echo "Installing $INSTALL_KALI_PACKAGES ..."
 		sudo apt update
