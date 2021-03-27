@@ -33,7 +33,7 @@ if [ $# -ge 1 ]; then
 		echo "Small tool to install some nice things such as zsh, cool fonts, and others packages"
 		echo "USAGE: $0 [-h | --help]"
 		echo "	-h, --help	: this help"
-		exit 1
+		exit 0
 	fi
 fi
 
@@ -44,7 +44,7 @@ fi
 if [ $(whoami) == "root" ]; then
 	echo "-----------"
 	echo "Sorry, retry without root"
-	exit 1
+	exit 0
 fi
 
 USER_HOME=$(echo $HOME)
@@ -57,14 +57,14 @@ if [ $(uname -r | grep "microsoft-standard") ]; then
 	isWSL=1
 fi
 
-if [ $(cat /etc/os-release | grep "kali") ]; then
+if [ "$(cat /etc/os-release | grep 'kali')" ]; then
 	distrib="kali"
-elif [ $(cat /etc/os-release | grep "debian") ]; then
+elif [ "$(cat /etc/os-release | grep 'debian')" ]; then
 	distrib="debian"
-elif [ $(cat /etc/os-release | grep "arch") ]; then
+elif [ "$(cat /etc/os-release | grep 'arch')" ]; then
 	distrib="arch"
 fi
-
+echo $distrib
 
 echo "Here is some question :"
 while [ "$iZSH" != "y" ] && [ "$iZSH" != "yes" ] && [ "$iZSH" != "n" ] && [ "$iZSH" != "no" ]; do
