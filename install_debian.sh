@@ -1,6 +1,4 @@
-#! /usr/bin/env bash
-
-# Installe differentes appli sur debian
+#! /bin/bash
 
 
 # Define some colors for quick use...
@@ -26,34 +24,174 @@ function echo_yellow(){
 	echo "${COLOR_YELLOW}${BOLD}$1${COLOR_RESET}"
 }
 
-function install_git_repo_opt(){
-  cd /opt
-  echo_green "Installation de john dans /opt"
-  git clone https://github.com/openwall/john.git
-  echo_green "Installation des SecLists dans /opt"
-  git clone https://github.com/danielmiessler/SecLists.git
-  echo_green "Installation de Sherlock dans /opt"
-  git clone https://github.com/sherlock-project/sherlock.git
-  
 
-  cd ~
-}
+set -e
+# set -x
 
-function customize_bashrc(){
-  echo "bin2ascii() { { tr -cd 01 | fold -w8; echo; } | sed '1i obase=8; ibase=2' | bc | sed 's/^/\\/' | tr -d '\n' | xargs -0 echo -e; }" >> ~/.bashrc
-}
-
-sudo apt update
-
-
-# tree
-app=tree
-sudo apt install $app -y
-if [[ $? == 0  ]]; then
-	echo_green "$app installé"
+if [ $# -ge 1 ]; then
+	if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+		echo "Small tool to install some nice things such as zsh, cool fonts, and others packages"
+		echo "USAGE: $0 [-h | --help]"
+		echo "	-h, --help	: this help"
+		exit 1
+	fi
 fi
 
-# sublime text
+
+
+
+
+if [ $(whoami) == "root" ]; then
+	echo "-----------"
+	echo "Sorry, retry without root"
+	exit 1
+fi
+
+USER_HOME=$(echo $HOME)
+
+##################################
+#		 Question Time !!
+##################################
+
+if [ $(uname -r | grep "microsoft-standard") ]; then
+	isWSL=1
+fi
+
+if [ $(cat /etc/os-release | grep "kali") ]; then
+	distrib="kali"
+elif [ $(cat /etc/os-release | grep "debian") ]; then
+	distrib="debian"
+elif [ $(cat /etc/os-release | grep "arch") ]; then
+	distrib="arch"
+fi
+
+
+echo "Here is some question :"
+while [ "$iZSH" != "y" ] && [ "$iZSH" != "yes" ] && [ "$iZSH" != "n" ] && [ "$iZSH" != "no" ]; do
+	read -p "Install zsh (it will be with antigen and p10k) ? [y/n] " iZSH
+done
+while [ "$iFONTS" != "y" ] && [ "$iFONTS" != "yes" ] && [ "$iFONTS" != "n" ] && [ "$iFONTS" != "no" ]; do
+	read -p "Install cool fonts compatible with zsh ? [y/n] " iFONTS
+done
+
+INSTALL_COMMON_TOOLS="tar bunzip2 unrar unzip p7z-full ar zstd"
+
+
+INSTALL_KALI_PACKAGES="kali-linux-default kali-tools-top10 sherlock ltrace strace tree"
+INSTALL_KALI_PACKAGES_REPLY=$INSTALL_KALI_PACKAGES
+if [ "$distrib" == "kali" ]; then
+	echo "Install below kali packages (type all to install all or type desired pakages, if none just press enter) :"
+	echo " $INSTALL_KALI_PACKAGES"
+	read -p "Your response : " INSTALL_KALI_PACKAGES_REPLY
+fi
+
+##################################
+#		 Install zsh and co
+##################################
+
+if [ $iZSH == "y" ] || [ $iZSH == "yes" ]; then
+	echo "Installing zsh, antigen and p10k for $USER_HOME"
+
+	sudo apt update && sudo apt install -y zsh 
+
+	## Install antigen-zsh and p10k
+	sudo apt update && sudo apt install -y curl git
+	if [ -d $USER_HOME/.config/antigen ]; then
+		mkdir $USER_HOME/.config/antigen
+	fi
+	curl -L git.io/antigen > $USER_HOME/.config/antigen.zsh
+
+	cat << _EOF_ > $USER_HOME/.zshrc
+source /path-to-antigen/antigen.zsh
+
+# Load the oh-my-zsh's library.
+antigen use oh-my-zsh
+
+# Bundles from the default repo (robbyrussell's oh-my-zsh).
+antigen bundle git
+antigen bundle heroku
+antigen bundle pip
+antigen bundle lein
+antigen bundle command-not-found
+
+# Syntax highlighting bundle.
+antigen bundle zsh-users/zsh-syntax-highlighting
+
+# Load the theme. Load p10k
+#antigen theme robbyrussell
+antigen theme romkatv/powerlevel10k
+
+
+# Tell Antigen that you're done.
+antigen apply
+_EOF_
+
+	echo_green "Install of zsh and co completed"
+fi
+
+##################################
+# Install cool fonts for the terminal with zsh and co
+##################################
+
+# Install cool fonts for the terminal with zsh and co
+if [ "$iFONTS" == "y" ] || [ "$iFONTS" == "yes" ]; then
+
+	FONTS_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/CascadiaCode.zip"
+	FONTS_NAME="CascadiaCode"
+	FONTS_ZIP="CascadiaCode.zip"
+
+	FONTS_PATH="/usr/share/fonts/$FONTS_NAME"
+
+	echo "Install some cool fonts $FONTS_NAME"
+
+	sudo apt update && sudo apt install -y curl
+
+	if ! [ -d $FONTS_PATH ]; then
+		echo "Creating $FONTS_PATH"
+		sudo mkdir $FONTS_PATH
+	fi
+
+	curl -L -O "$FONTS_URL"
+
+	if [ -f "$FONTS_ZIP" ]; then
+	    unzip "$FONTS_ZIP" -d $FONTS_NAME
+	else
+	    echo_red "Unable to find the pulled fonts archive file.  Fonts install failed."
+	    exit 1
+	fi
+
+	if [ -d $FONTS_PATH ]; then
+		# for file in $(find $FONTS_NAME | grep ttf | sed -e 's/^/"/g' -e 's/$/"/g' | tr '\n' ' '); do
+		#     # echo " "
+		#     echo "Installing the $file fonts in $FONTS_PATH"
+
+		#     mv $file $FONTS_PATH
+		# done
+		sudo mv $FONTS_NAME/*ttf $FONTS_PATH
+		# clean up archive file
+		echo "Clearing and regenerating the font cache.  You will see a stream of text as this occurs..."
+		rm -rf $FONTS_ZIP $FONTS_NAME
+		fc-cache -f 
+		echo "Testing. You should see the expected install filepaths in the output below..."
+		fc-list | grep "$FONTS_NAME"
+
+		echo_green "Install of $FONTS_NAME fonts completed"
+	else
+	    echo_red "Unable to identify the unpacked font directory $FONTS_PATH. Install failed."
+	    exit 1
+	fi
+fi
+
+##################################
+# Install Common tools
+##################################
+
+sudo apt update
+sudo apt install $INSTALL_COMMON_TOOLS
+if [ $? -eq 0  ]; then
+  echo_green "$INSTALL_COMMON_TOOLS installed"
+fi
+
 app=sublimetext
 wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
 sudo apt-get install apt-transport-https
@@ -61,49 +199,42 @@ echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sou
 sudo apt-get update
 sudo apt-get install sublime-text
 if [[ $? == 0  ]]; then
-	echo_green "$app installé"
+	echo_green "$app installed"
 fi
 
-# extractor de differents fichiers (zip, gz, ...)
-app=tar
-sudo apt install $app -y
-if [[ $? == 0  ]]; then
-	echo_green "$app installé"
-fi
-app=bunzip2
-sudo apt install $app -y
-if [[ $? == 0  ]]; then
-	echo_green "$app installé"
-fi
-app=unrar
-sudo apt install $app -y
-if [[ $? == 0  ]]; then
-	echo_green "$app installé"
-fi
-app=unzip
-sudo apt install $app -y
-if [[ $? == 0  ]]; then
-	echo_green "$app installé"
-fi
-# app=uncompress
-# if [[ ${sudo apt install $app -y} ]]; then
-# 	echo_green "$app installé"
-# fi
-app=p7z-full
-sudo apt install $app -y
-if [[ $? == 0  ]]; then
-	echo_green "$app installé"
-fi
-app=ar
-sudo apt install $app -y
-if [[ $? == 0  ]]; then
-	echo_green "$app installé"
-fi
-app=zstd
-sudo apt install $app -y
-if [[ $? == 0  ]]; then
-	echo_green "$app installé"
-fi
+##################################
+# Update .bashrc and .zshrc with some aliases
+##################################
+
+ echo "bin2ascii() { { tr -cd 01 | fold -w8; echo; } | sed '1i obase=8; ibase=2' | bc | sed 's/^/\\/' | tr -d '\n' | xargs -0 echo -e; }" >> $USER_HOME/.bashrc
+ echo "bin2ascii() { { tr -cd 01 | fold -w8; echo; } | sed '1i obase=8; ibase=2' | bc | sed 's/^/\\/' | tr -d '\n' | xargs -0 echo -e; }" >> $USER_HOME/.zshrc
+
+echo '# # ex = EXtractor for all kinds of archives
+# # usage: ex <file>
+extractor ()
+{
+  if [ -f $1 ] ; then
+    case $1 in
+      *.tar.bz2)   tar xjf $1   ;;
+      *.tar.gz)    tar xzf $1   ;;
+      *.bz2)       bunzip2 $1   ;;
+      *.rar)       unrar x $1   ;;
+      *.gz)        gunzip $1    ;;
+      *.tar)       tar xf $1    ;;
+      *.tbz2)      tar xjf $1   ;;
+      *.tgz)       tar xzf $1   ;;
+      *.zip)       unzip $1     ;;
+      *.Z)         uncompress $1;;
+      *.7z)        7z x $1      ;;
+      *.deb)       ar x $1      ;;
+      *.tar.xz)    tar xf $1    ;;
+      *.tar.zst)   unzstd $1    ;;      
+      *)           echo "Cannot be extracted via extractor()" ;;
+    esac
+  else
+    echo "'$1' is not a valid file"
+  fi
+}' >> $USER_HOME/.bashrc
 echo '# # ex = EXtractor for all kinds of archives
 # # usage: ex <file>
 extractor ()
@@ -129,24 +260,38 @@ extractor ()
   else
     echo "'$1' is not a valid file"
   fi
-}' >> ~/.bashrc
+}' >> $USER_HOME/.zshrc
 
 
-# Chromium
-app=chromium
-sudo apt install $app -y
-if [[ $? == 0  ]]; then
-  echo_green "$app installé"
+##################################
+# Downloading some git repo for kali
+##################################
+if [ "$distrib" -eq "kali" ]; then
+	if [ "$INSTALL_KALI_PACKAGES_REPLY" == "all"]; then
+		echo "Installing $INSTALL_KALI_PACKAGES ..."
+		sudo apt update
+		sudo apt install -y $INSTALL_KALI_PACKAGES
+	elif [ "$INSTALL_KALI_PACKAGES_REPLY" != "" ]; then
+		echo "Installing $INSTALL_KALI_PACKAGES_REPLY ..."
+		sudo apt update
+		sudo apt install -y $INSTALL_KALI_PACKAGES_REPLY
+	fi
+
+	echo "Downloading SecList in /opt"
+	git clone https://github.com/danielmiessler/SecLists.git /opt/SecLists
+
+	echo "Downloading john in /opt"
+	git clone https://github.com/openwall/john.git
+
 fi
 
-# Tmux
-app=tmux
-sudo apt install $app -y
-if [[ $? == 0  ]]; then
-  echo_green "$app installé"
+
+
+
+
+if [ "$iZSH" == "y" ] || [ "$iZSH" == "yes" ]; then
+	zsh
 fi
 
+echo_green "Please now reboot/relaunch your terminal"
 
-
-install_git_repo_opt
-customize_bashrc
